@@ -1,8 +1,6 @@
 require('dotenv').config();
 
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
 const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
 
@@ -16,10 +14,6 @@ const announcementRoutes = require('./routes/announcementRoutes');
 const swaggerDocs = require('./config/swagger');
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: '*' }
-});
 
 // Swagger Documentation
 swaggerDocs(app);
@@ -33,25 +27,20 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.set('io', io);
-
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
-
-  socket.on('join-event', (eventId) => {
-    socket.join(eventId);
-    console.log(`Socket ${socket.id} joined event room: ${eventId}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`Socket disconnected: ${socket.id}`);
-  });
-});
-
 // Middlewares
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(mongoSanitize());
+
+// Middleware للاتصال بقاعدة البيانات مع كل طلب في Vercel
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -64,17 +53,16 @@ app.use((req, res, next) => {
   res.status(404).json({ status: 'fail', message: 'الرابط غير موجود' });
 });
 
+// Central Error Handler
 app.use(errorHandler);
 
+// التشغيل المحلي فقط (Local Development)
 if (process.env.NODE_ENV !== 'production') {
-  connectDB().then(() => {
-    const PORT = process.env.PORT || 3000;
-    server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running locally on port ${PORT}`);
   });
-} else {
-  connectDB();
 }
 
+// تصدير app كـ Serverless Handler لـ Vercel
 module.exports = app;
