@@ -3,7 +3,6 @@ const router = express.Router();
 const registrationController = require('../controllers/registrationController');
 const { requireAuth } = require('../middleware/auth');
 
-// جميع مسارات التسجيل تتطلب تسجيل الدخول
 router.use(requireAuth);
 
 router.post('/', registrationController.registerForEvent);

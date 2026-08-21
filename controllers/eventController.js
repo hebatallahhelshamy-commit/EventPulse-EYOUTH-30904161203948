@@ -2,24 +2,20 @@ const Event = require('../models/event.model');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 
-// 1. جلب جميع الفعاليات (مع الفلترة والبحث والصفحات والترتيب)
 exports.getEvents = asyncHandler(async (req, res, next) => {
   const { category, city, startDate, endDate, search, sortBy, order, page, limit } = req.query;
 
   const filter = {};
 
-  // الفلترة حسب التصنيف والمدينة
   if (category) filter.category = category;
   if (city) filter.city = city;
 
-  // الفلترة حسب التاريخ
   if (startDate || endDate) {
     filter.date = {};
     if (startDate) filter.date.$gte = new Date(startDate);
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  // البحث النصي في العنوان والوصف
   if (search) {
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
@@ -27,13 +23,11 @@ exports.getEvents = asyncHandler(async (req, res, next) => {
     ];
   }
 
-  // الترتيب Safe Sorting
   const allowedSortFields = ['date', 'capacity'];
   const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'date';
   const sortDirection = order === 'desc' ? -1 : 1;
   const sort = { [sortField]: sortDirection };
 
-  // التقسيم لصفحات Pagination
   const pageNum = parseInt(page, 10) || 1;
   const limitNum = parseInt(limit, 10) || 10;
   const skip = (pageNum - 1) * limitNum;
@@ -60,7 +54,6 @@ exports.getEvents = asyncHandler(async (req, res, next) => {
   });
 });
 
-// 2. جلب فعالية واحدة بالـ ID
 exports.getEventById = asyncHandler(async (req, res, next) => {
   const event = await Event.findById(req.params.id)
     .populate('category')
@@ -76,7 +69,6 @@ exports.getEventById = asyncHandler(async (req, res, next) => {
   });
 });
 
-// 3. إنشاء فعالية جديدة (Admin Only)
 exports.createEvent = asyncHandler(async (req, res, next) => {
   const { title, description, category, date, city, venue, capacity } = req.body;
 
@@ -97,7 +89,6 @@ exports.createEvent = asyncHandler(async (req, res, next) => {
   });
 });
 
-// 4. تعديل فعالية (Admin Only)
 exports.updateEvent = asyncHandler(async (req, res, next) => {
   const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -114,7 +105,6 @@ exports.updateEvent = asyncHandler(async (req, res, next) => {
   });
 });
 
-// 5. حذف فعالية (Admin Only)
 exports.deleteEvent = asyncHandler(async (req, res, next) => {
   const event = await Event.findByIdAndDelete(req.params.id);
 

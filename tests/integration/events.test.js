@@ -1,11 +1,9 @@
 const request = require('supertest');
 const express = require('express');
 
-// إنشاء تطبيق Express مصغر لاختبار مسارات الفعاليات
 const app = express();
 app.use(express.json());
 
-// محاكاة مسار إضافة فعالية يحتاج تسجيل دخول (401 Unauthorized)
 app.post('/api/events', (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -12,7 +12,7 @@ exports.requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // يحتوي على { userId, role }
+    req.user = decoded; 
     next();
   } catch (error) {
     return next(new AppError('التوكن غير صالح أو انتهت صلاحيته', 401));

@@ -13,16 +13,18 @@ const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const registrationRoutes = require('./routes/registrationRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
+const swaggerDocs = require('./config/swagger');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' }
 });
-const swaggerDocs = require('./config/swagger');
-// ضعي هذا السطر بعد تعريف app
+
+// Swagger Documentation
 swaggerDocs(app);
 
+// Health Check Endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -31,10 +33,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// حفظ io داخل Express لتمريرها للمتحكمات
 app.set('io', io);
 
-// Socket.io Connection & Rooms
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
@@ -64,15 +64,17 @@ app.use((req, res, next) => {
   res.status(404).json({ status: 'fail', message: 'الرابط غير موجود' });
 });
 
-// Central Error Handler
 app.use(errorHandler);
 
-async function start() {
-  await connectDB();
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+if (process.env.NODE_ENV !== 'production') {
+  connectDB().then(() => {
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   });
+} else {
+  connectDB();
 }
 
-start();
+module.exports = app;
