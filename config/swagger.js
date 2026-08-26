@@ -40,7 +40,10 @@ const swaggerDocs = (app) => {
   app.use(
     '/api-docs',
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec)
+    swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customSiteTitle: 'EventPulse API Documentation',
+    })
   );
 };
 
