@@ -11,7 +11,10 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url:
+          process.env.NODE_ENV === 'production'
+            ? 'https://event-pulse-eyouth-30904161203948.vercel.app'
+            : 'http://localhost:3000',
       },
     ],
   },
