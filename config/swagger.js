@@ -1,5 +1,6 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
 
 const options = {
   definition: {
@@ -18,7 +19,9 @@ const options = {
       },
     ],
   },
-  apis: ['./routes/*.js'],
+
+  // استخدام مسار مطلق بدل المسار النسبي
+  apis: [path.join(__dirname, '../routes/*.js')],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
