@@ -2,6 +2,8 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const path = require('path');
 
+const routesPath = path.resolve(__dirname, '../routes');
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -20,14 +22,23 @@ const options = {
     ],
   },
 
-  // استخدام مسار مطلق بدل المسار النسبي
-  apis: [path.join(__dirname, '../routes/*.js')],
+  apis: [
+    path.join(routesPath, 'authRoutes.js'),
+    path.join(routesPath, 'eventRoutes.js'),
+    path.join(routesPath, 'registrationRoutes.js'),
+    path.join(routesPath, 'announcementRoutes.js'),
+  ],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
+
 const swaggerDocs = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+  );
 };
 
 module.exports = swaggerDocs;
