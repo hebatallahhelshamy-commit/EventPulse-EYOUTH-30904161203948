@@ -18,27 +18,41 @@ const app = express();
 // Swagger Documentation
 swaggerDocs(app);
 
-// Health Check Endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date(),
-  });
-});
-
 // Middlewares
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(mongoSanitize());
 
-// Middleware للاتصال بقاعدة البيانات مع كل طلب في Vercel
+// Health Check Endpoint
+app.get('/health', async (req, res) => {
+  try {
+    await connectDB();
+
+    res.status(200).json({
+      status: 'ok',
+      environment: process.env.NODE_ENV,
+      uptime: process.uptime(),
+      database: 'connected',
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      environment: process.env.NODE_ENV,
+      uptime: process.uptime(),
+      database: 'disconnected',
+      timestamp: new Date(),
+    });
+  }
+});
+
+// Connect to MongoDB before API routes
 app.use(async (req, res, next) => {
   try {
     await connectDB();
     next();
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -49,20 +63,24 @@ app.use('/api/registrations', registrationRoutes);
 app.use('/api/announcements', announcementRoutes);
 
 // Handling 404 Routes
-app.use((req, res, next) => {
-  res.status(404).json({ status: 'fail', message: 'الرابط غير موجود' });
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'fail',
+    message: 'الرابط غير موجود',
+  });
 });
 
 // Central Error Handler
 app.use(errorHandler);
 
-// التشغيل المحلي فقط (Local Development)
+// Local development only
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
+
   app.listen(PORT, () => {
     console.log(`Server running locally on port ${PORT}`);
   });
 }
 
-// تصدير app كـ Serverless Handler لـ Vercel
+// Vercel Serverless Handler
 module.exports = app;
