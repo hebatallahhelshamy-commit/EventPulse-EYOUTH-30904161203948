@@ -1,12 +1,90 @@
 const express = require('express');
 const router = express.Router();
+
 const registrationController = require('../controllers/registrationController');
 const { requireAuth } = require('../middleware/auth');
 
-router.use(requireAuth);
+/**
+ * @swagger
+ * tags:
+ *   name: Registrations
+ *   description: Event registration management
+ */
 
-router.post('/', registrationController.registerForEvent);
-router.get('/my', registrationController.getMyRegistrations);
-router.delete('/:id', registrationController.cancelRegistration);
+/**
+ * @swagger
+ * /api/registrations:
+ *   post:
+ *     summary: Register for an event
+ *     tags: [Registrations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       201:
+ *         description: Registration created successfully
+ *       400:
+ *         description: Registration failed
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  '/',
+  requireAuth,
+  registrationController.registerForEvent
+);
+
+/**
+ * @swagger
+ * /api/registrations/my:
+ *   get:
+ *     summary: Get my registrations
+ *     tags: [Registrations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User registrations retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  '/my',
+  requireAuth,
+  registrationController.getMyRegistrations
+);
+
+/**
+ * @swagger
+ * /api/registrations/{id}:
+ *   delete:
+ *     summary: Cancel a registration
+ *     tags: [Registrations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Registration cancelled successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Registration not found
+ */
+router.delete(
+  '/:id',
+  requireAuth,
+  registrationController.cancelRegistration
+);
 
 module.exports = router;
