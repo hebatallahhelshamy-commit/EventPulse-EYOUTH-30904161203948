@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 
 const announcementsController = require('../controllers/announcementsController');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const validate = require('../middleware/validate');
 
 /**
  * @swagger
@@ -30,7 +32,10 @@ const { requireAuth, requireRole } = require('../middleware/auth');
  *       404:
  *         description: Event not found
  */
-router.get('/:eventId', announcementsController.getAnnouncements);
+router.get(
+  '/:eventId',
+  announcementsController.getAnnouncements
+);
 
 /**
  * @swagger
@@ -46,6 +51,14 @@ router.get('/:eventId', announcementsController.getAnnouncements);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - eventId
+ *               - text
+ *             properties:
+ *               eventId:
+ *                 type: string
+ *               text:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Announcement created successfully
@@ -53,11 +66,24 @@ router.get('/:eventId', announcementsController.getAnnouncements);
  *         description: Unauthorized
  *       403:
  *         description: Admin access required
+ *       422:
+ *         description: Validation error
  */
 router.post(
   '/',
   requireAuth,
   requireRole('admin'),
+  [
+    body('eventId')
+      .isMongoId()
+      .withMessage('Invalid event ID'),
+
+    body('text')
+      .trim()
+      .notEmpty()
+      .withMessage('Announcement text is required'),
+  ],
+  validate,
   announcementsController.createAnnouncement
 );
 

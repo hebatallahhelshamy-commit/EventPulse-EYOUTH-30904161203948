@@ -3,6 +3,8 @@ const router = express.Router();
 
 const registrationController = require('../controllers/registrationController');
 const { requireAuth } = require('../middleware/auth');
+const { registrationRules } = require('../middleware/validators');
+const validate = require('../middleware/validate');
 
 /**
  * @swagger
@@ -32,10 +34,14 @@ const { requireAuth } = require('../middleware/auth');
  *         description: Registration failed
  *       401:
  *         description: Unauthorized
+ *       422:
+ *         description: Validation error
  */
 router.post(
   '/',
   requireAuth,
+  registrationRules,
+  validate,
   registrationController.registerForEvent
 );
 
@@ -78,6 +84,8 @@ router.get(
  *         description: Registration cancelled successfully
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Registration not found
  */

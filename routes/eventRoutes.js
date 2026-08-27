@@ -3,6 +3,8 @@ const router = express.Router();
 
 const eventController = require('../controllers/eventController');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { eventRules } = require('../middleware/validators');
+const validate = require('../middleware/validate');
 
 /**
  * @swagger
@@ -64,11 +66,15 @@ router.get('/:id', eventController.getEventById);
  *         description: Unauthorized
  *       403:
  *         description: Admin access required
+ *       422:
+ *         description: Validation error
  */
 router.post(
   '/',
   requireAuth,
   requireRole('admin'),
+  eventRules,
+  validate,
   eventController.createEvent
 );
 
@@ -101,6 +107,8 @@ router.post(
  *         description: Admin access required
  *       404:
  *         description: Event not found
+ *       422:
+ *         description: Validation error
  */
 router.patch(
   '/:id',

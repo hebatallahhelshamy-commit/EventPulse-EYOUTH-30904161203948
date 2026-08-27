@@ -1,6 +1,16 @@
 const express = require('express');
 const router = express.Router();
+
 const authController = require('../controllers/authController');
+const { registerRules, loginRules } = require('../middleware/validators');
+const validate = require('../middleware/validate');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: User authentication
+ */
 
 /**
  * @swagger
@@ -38,7 +48,12 @@ const authController = require('../controllers/authController');
  *       422:
  *         description: Validation error
  */
-router.post('/register', authController.register);
+router.post(
+  '/register',
+  registerRules,
+  validate,
+  authController.register
+);
 
 /**
  * @swagger
@@ -72,6 +87,11 @@ router.post('/register', authController.register);
  *       422:
  *         description: Validation error
  */
-router.post('/login', authController.login);
+router.post(
+  '/login',
+  loginRules,
+  validate,
+  authController.login
+);
 
 module.exports = router;
